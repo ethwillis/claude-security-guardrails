@@ -543,7 +543,20 @@ Every scanner is a pure function: `(content, filePath) → findings[]`. Each fin
 | Path Traversal (file ops with user input) | High/Medium |
 | CORS Misconfiguration (`origin: '*'`) | Medium |
 
-### Dangerous Commands (50+ patterns)
+### Protected File Paths (Edit/Write blocked)
+
+| Category | Examples |
+|----------|----------|
+| Secrets & env | `.env*`, `*.pem`, `*.key`, `id_rsa*`, `credentials*`, `secrets*` |
+| Git internals | `.git/**`, `.gitignore`, `.gitattributes`, `.gitmodules` |
+| Lockfiles & CI | `package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`, `poetry.lock`, `Gemfile.lock`, `Cargo.lock`, `go.sum`, `.github/workflows/**`, `Dockerfile`, `docker-compose.y*ml` |
+| System paths | `C:\Windows\**`, `C:\Program Files\**`, `/etc/**`, `/usr/**`, `/bin/**`, `/sbin/**` |
+
+### Destructive Edits
+
+The PreToolUse hook also denies `Edit` calls that remove ≥50 lines and shrink a file by >75%, and `Write` calls that replace an existing 50+ line file with <25% of its line count. Make targeted edits or delete the file manually instead.
+
+### Dangerous Commands (60+ patterns)
 
 Covers both POSIX shells (bash/zsh) and **Windows PowerShell**. PowerShell patterns are case-insensitive and account for built-in aliases (`rm`/`del`/`ri`/`rmdir`/`erase` → `Remove-Item`).
 
@@ -552,6 +565,8 @@ Covers both POSIX shells (bash/zsh) and **Windows PowerShell**. PowerShell patte
 | Category | Examples | Severity |
 |----------|----------|----------|
 | Filesystem destruction | `rm -rf /`, `rm -rf ~/`, `rm -rf .` | Critical |
+| Project-path deletion | `rm -rf node_modules`, `rm -rf .git`, `rmdir -r`, `find … -delete`, `find … -exec rm` | High |
+| Any rm/del (warn) | `rm <path>`, Windows `del`/`erase` (strict level only — surfaces a confirm prompt) | Strict |
 | Disk wipe | `dd of=/dev/sda`, `mkfs` | Critical |
 | Fork bombs | `:(){ :\|:& };:` | Critical |
 | Git disasters | `git push --force main`, `git reset --hard`, `git clean -f` | High |
@@ -566,6 +581,8 @@ Covers both POSIX shells (bash/zsh) and **Windows PowerShell**. PowerShell patte
 | Category | Examples | Severity |
 |----------|----------|----------|
 | Recursive delete on system / user dirs | `Remove-Item -Recurse C:\`, `Remove-Item -Recurse $env:USERPROFILE`, `… C:\Windows`, `… C:\Users\*` | Critical |
+| Recursive delete (any path) | `Remove-Item -Recurse -Force <path>`, `rd /s`, `del /s`, `Remove-Item .git` | High |
+| Any Remove-Item / del (warn) | `Remove-Item <path>`, `del <path>` (strict level — confirm prompt) | Strict |
 | Disk wipe | `Format-Volume`, `Clear-Disk`, `Initialize-Disk`, `cipher /w:C` | Critical |
 | PowerShell remote code execution | `iex (iwr …)`, `iex (curl …)`, `(New-Object Net.WebClient).DownloadString(…)` | High |
 | Execution policy bypass | `Set-ExecutionPolicy Bypass`, `Set-ExecutionPolicy Unrestricted` | High |

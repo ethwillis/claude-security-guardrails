@@ -74,7 +74,21 @@ const DANGEROUS_PATTERNS = [
   { level: 'high', id: 'ps-stop-process-mass',     regex: /\bGet-Process\b[^;]*\|\s*Stop-Process|\bStop-Process\b[^;]*-Force[^;]*-Name\s+\*/i,                        reason: 'Mass process termination' },
   { level: 'high', id: 'ps-shutdown',              regex: /\b(Stop-Computer|Restart-Computer)\b/i,                                                                    reason: 'PowerShell system shutdown/restart' },
 
+  // ── HIGH: File/folder deletion targeting project paths ──
+  { level: 'high', id: 'rmdir-recursive',     regex: /\brmdir\s+(-.*r.*\s+|--recursive\s+|-p\s+)/,                            reason: 'Recursive rmdir — deletes directory tree' },
+  { level: 'high', id: 'find-delete',         regex: /\bfind\b[^;|&]*-delete\b/,                                              reason: 'find -delete — bulk file deletion' },
+  { level: 'high', id: 'find-exec-rm',        regex: /\bfind\b[^;|&]*-exec\s+rm\b/,                                           reason: 'find -exec rm — bulk file deletion' },
+  { level: 'high', id: 'rm-dotgit',           regex: /\brm\s+(-.+\s+)*[^;|&]*\.git(\s|\/|$|[;&|])/,                           reason: 'Deleting .git directory — destroys repo history' },
+  { level: 'high', id: 'rm-node-modules',     regex: /\brm\s+-rf?\s+[^;|&]*node_modules/,                                     reason: 'Removing node_modules — verify intent' },
+  { level: 'high', id: 'cmd-del-recursive',   regex: /\b(del|erase)\s+\/[sS]\b/,                                              reason: 'Windows del /s — recursive delete' },
+  { level: 'high', id: 'cmd-rd-recursive',    regex: /\brd\s+\/[sS]\b/i,                                                      reason: 'Windows rd /s — recursive directory delete' },
+  { level: 'high', id: 'ps-remove-recurse',   regex: /\b(Remove-Item|del|erase|rmdir|ri)\b[^|;]*-Recurse\b[^|;]*-Force\b/i,   reason: 'Remove-Item -Recurse -Force — irreversible directory delete' },
+  { level: 'high', id: 'ps-remove-dotgit',    regex: /\b(Remove-Item|del|erase|rmdir|ri)\b[^|;]*\\?\.git(\\|\s|$|[;&|])/i,    reason: 'Removing .git directory — destroys repo history' },
+
   // ── STRICT: Cautionary, context-dependent ──
+  { level: 'strict', id: 'rm-any',           regex: /\brm\s+(-\w*\s+)?[^;|&]+/,                                              reason: 'rm — verify the target before approving' },
+  { level: 'strict', id: 'ps-remove-any',    regex: /\b(Remove-Item|rmdir|ri)\b/i,                                            reason: 'Remove-Item — verify the target before approving' },
+  { level: 'strict', id: 'cmd-del-any',      regex: /(^|[;&|]\s*)(del|erase)\s+/i,                                            reason: 'del/erase — verify the target before approving' },
   { level: 'strict', id: 'git-force-any',    regex: /\bgit\s+push\b(?!.+--force-with-lease).+(--force|-f)\b/,                 reason: 'Force push — use --force-with-lease instead' },
   { level: 'strict', id: 'git-checkout-dot', regex: /\bgit\s+checkout\s+\./,                                                  reason: 'git checkout . — discards all local changes' },
   { level: 'strict', id: 'sudo-rm',          regex: /\bsudo\s+rm\b/,                                                          reason: 'sudo rm — elevated privilege deletion' },
