@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node /Users/siddhanthdwivedi/Desktop/workspace/codebase/claude-security-guardrails/hooks/post-tool-use.js"
+            "command": "node C:\\Users\\EthanWillis\\Documents\\Claude Skills\\claude-security-guardrails\\hooks\\post-tool-use.js"
           }
         ]
       }
@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node /Users/siddhanthdwivedi/Desktop/workspace/codebase/claude-security-guardrails/hooks/pre-tool-use.js"
+            "command": "node C:\\Users\\EthanWillis\\Documents\\Claude Skills\\claude-security-guardrails\\hooks\\pre-tool-use.js"
           }
         ]
       }

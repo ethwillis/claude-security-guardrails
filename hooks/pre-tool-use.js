@@ -41,8 +41,9 @@ const { checkCommand } = require('../scanner/scanners/dangerousCommands');
 const { SEVERITY } = require('../scanner/utils/severity');
 const { appendEvent } = require('../scanner/utils/activityLog');
 
-const SAFETY_LEVEL = 'high';
 const LEVELS = { critical: 1, high: 2, strict: 3 };
+const RAW_LEVEL = (process.env.GUARDRAILS_LEVEL || 'high').toLowerCase();
+const SAFETY_LEVEL = LEVELS[RAW_LEVEL] ? RAW_LEVEL : 'high';
 const LOG_DIR = path.join(process.env.HOME, '.claude', 'hooks-logs');
 
 function fileLog(data) {
