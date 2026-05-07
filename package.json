@@ -14,7 +14,8 @@
     "dashboard": "npm run dev --workspace=dashboard",
     "setup-hooks": "node hooks/setup-hooks.js",
     "install-globally": "node hooks/install-globally.js",
-    "dev": "concurrently \"npm run server\" \"npm run dashboard\""
+    "dev": "concurrently \"npm run server\" \"npm run dashboard\"",
+    "test": "node hooks/__tests__/pre-tool-use.guardrail-cases.test.js"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

@@ -15,6 +15,7 @@ Built with Claude Code hooks, a Node.js scanning engine, and a React dashboard.
 - [What It Does](#what-it-does)
 - [Screenshots](#screenshots)
 - [Quick Start](#quick-start)
+- [Test the Guardrails Yourself](#test-the-guardrails-yourself)
 - [Running with Docker](#running-with-docker)
 - [Commands Reference](#commands-reference)
 - [Using Personally](#using-personally)
@@ -140,9 +141,49 @@ Output:
 
 ### Run a Test Scan
 
+Scan the bundled vulnerable sample files (hardcoded secrets, SQL injection, eval, etc.):
+
 ```bash
 npm run scan -- ./test-fixtures/
 ```
+
+### Test the Guardrails Yourself
+
+Two ways to verify the hook actually blocks dangerous actions before involving Claude:
+
+**1. Run the hook test suite (5 cases, ~1s):**
+
+```bash
+npm test
+```
+
+This pipes mock tool-call payloads into [hooks/pre-tool-use.js](hooks/pre-tool-use.js) and asserts each one is denied — covering an AWS-key write, `cat .env`, `git push --force origin main`, a PowerShell recursive delete on `C:\Windows\Temp`, and a Windows regression where `HOME` is unset.
+
+**2. Pipe a single test-input payload at the hook manually:**
+
+The [test-inputs/](test-inputs/) directory contains real Claude Code hook payloads you can pipe in to see the deny JSON the hook produces:
+
+```bash
+# POSIX
+cat test-inputs/bash_rm_root.json | node hooks/pre-tool-use.js
+
+# PowerShell
+Get-Content test-inputs/ps_remove_system.json | node hooks/pre-tool-use.js
+```
+
+A blocked command returns JSON like:
+
+```json
+{
+  "hookSpecificOutput": {
+    "hookEventName": "PreToolUse",
+    "permissionDecision": "deny",
+    "permissionDecisionReason": "🚨 [rm-root] Dangerous command blocked: rm targeting root filesystem ..."
+  }
+}
+```
+
+Available payloads: `bash_rm_root.json`, `git_force_main.json`, `ps_iex_download.json`, `ps_remove_system.json`. To add your own, follow the `{ tool_name, tool_input, session_id }` shape.
 
 ### Start the Dashboard
 
@@ -203,6 +244,7 @@ Docker Compose uses a named volume `scan-data` to persist scan results and activ
 | `npm run scan -- <path> --json` | Scan with JSON output |
 | `npm run scan -- <path> --dry-run` | Scan without saving results |
 | `npm run scan:results` | Show latest scan results as JSON |
+| `npm test` | Run the hook test suite (pipes `test-inputs/` payloads at the pre-tool-use hook and asserts each is denied) |
 | `npm run server` | Start API server only (port 3001) |
 | `npm run dashboard` | Start dashboard only (port 5173) |
 | `npm run dev` | Start both API + dashboard |
@@ -706,7 +748,8 @@ claude-security-guardrails/
 │   ├── pre-tool-use.js             # BLOCKING hook (reads GUARDRAILS_LEVEL)
 │   ├── post-tool-use.js            # Reporting hook
 │   ├── setup-hooks.js              # Per-project installer
-│   └── install-globally.js         # Global installer / uninstaller
+│   ├── install-globally.js         # Global installer / uninstaller
+│   └── __tests__/                  # Hook test suite (`npm test`)
 ├── dashboard/                      # React + Vite
 │   └── src/
 │       └── components/
@@ -718,7 +761,8 @@ claude-security-guardrails/
 │           ├── RecentScans.jsx
 │           ├── FindingsTable.jsx
 │           └── Header.jsx          # Live API status indicator
-├── test-fixtures/                  # Sample vulnerable files
+├── test-fixtures/                  # Sample vulnerable files for `npm run scan`
+├── test-inputs/                    # Mock hook payloads to pipe at pre-tool-use.js
 └── .claude/
     └── settings.json               # Hook configuration
 ```

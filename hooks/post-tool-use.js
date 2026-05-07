@@ -19,9 +19,10 @@
 
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 const { appendEvent } = require('../scanner/utils/activityLog');
 
-const LOG_DIR = path.join(process.env.HOME, '.claude', 'hooks-logs');
+const LOG_DIR = path.join(process.env.HOME || process.env.USERPROFILE || os.homedir(), '.claude', 'hooks-logs');
 
 function fileLog(data) {
   try {

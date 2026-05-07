@@ -1,0 +1,1 @@
+{"tool_name":"Bash","tool_input":{"command":"Remove-Item -Recurse -Force C:\\"},"session_id":"test-ps-remove","cwd":"C:\\Users\\EthanWillis\\Documents\\Claude Skills\\claude-security-guardrails"}
