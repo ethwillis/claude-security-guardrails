@@ -10,10 +10,24 @@ const ACTION_CONFIG = {
 
 function ActivityLog({ events, stats }) {
   const [filter, setFilter] = useState('all');
+  const [severity, setSeverity] = useState('all');
+  const [tool, setTool] = useState('all');
+  const [query, setQuery] = useState('');
 
-  const filtered = filter === 'all'
-    ? events
-    : events.filter(e => e.action === filter);
+  const tools = Array.from(new Set(events.map(e => e.tool).filter(Boolean)));
+
+  const filtered = events.filter(e => {
+    if (filter !== 'all' && e.action !== filter) return false;
+    if (severity !== 'all' && e.severity !== severity) return false;
+    if (tool !== 'all' && e.tool !== tool) return false;
+    if (query) {
+      const q = query.toLowerCase();
+      const hay = [e.target, e.reason, e.tool, e.hook, e.action]
+        .filter(Boolean).join(' ').toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
 
   const formatTime = (ts) => {
     const d = new Date(ts);
@@ -54,7 +68,7 @@ function ActivityLog({ events, stats }) {
         </div>
       )}
 
-      {/* Filter */}
+      {/* Filters */}
       <div className="activity-filters">
         {['all', 'blocked', 'allowed', 'warning', 'findings'].map(f => (
           <button
@@ -65,6 +79,47 @@ function ActivityLog({ events, stats }) {
             {f === 'all' ? 'All' : ACTION_CONFIG[f]?.label || f}
           </button>
         ))}
+      </div>
+      <div className="activity-filters-row">
+        <select
+          className="activity-select"
+          value={severity}
+          onChange={(e) => setSeverity(e.target.value)}
+          aria-label="Filter by severity"
+        >
+          <option value="all">All severities</option>
+          <option value="critical">Critical</option>
+          <option value="high">High</option>
+          <option value="medium">Medium</option>
+          <option value="low">Low</option>
+        </select>
+        <select
+          className="activity-select"
+          value={tool}
+          onChange={(e) => setTool(e.target.value)}
+          aria-label="Filter by tool"
+        >
+          <option value="all">All tools</option>
+          {tools.map(t => <option key={t} value={t}>{t}</option>)}
+        </select>
+        <input
+          className="activity-search"
+          type="text"
+          placeholder="Search target, reason, tool…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+        {(severity !== 'all' || tool !== 'all' || query || filter !== 'all') && (
+          <button
+            className="activity-clear"
+            onClick={() => { setFilter('all'); setSeverity('all'); setTool('all'); setQuery(''); }}
+          >
+            Clear
+          </button>
+        )}
+      </div>
+      <div className="activity-result-count">
+        Showing {filtered.length} of {events.length} events
       </div>
 
       {/* Event list */}

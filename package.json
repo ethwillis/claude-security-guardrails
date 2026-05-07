@@ -13,6 +13,7 @@
     "server": "node scanner/server.js",
     "dashboard": "npm run dev --workspace=dashboard",
     "setup-hooks": "node hooks/setup-hooks.js",
+    "install-globally": "node hooks/install-globally.js",
     "dev": "concurrently \"npm run server\" \"npm run dashboard\""
   },
   "devDependencies": {

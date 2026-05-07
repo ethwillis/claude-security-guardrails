@@ -4,6 +4,8 @@ A real-time security guardrails system that automatically scans code generated b
 
 Built with Claude Code hooks, a Node.js scanning engine, and a React dashboard.
 
+> **Mental model:** Claude Code asks the operating system for permission to do every Write/Edit/Bash. This project sits between Claude and the OS, inspects the request, and either says "go ahead" or "denied — here's why." When denied, Claude sees the reason in its own context and can revise. Nothing on disk changes for blocked actions.
+
 ![Dashboard Overview](assets/dashboard-overview.png)
 
 ---
@@ -20,6 +22,7 @@ Built with Claude Code hooks, a Node.js scanning engine, and a React dashboard.
 - [How Hooks Work](#how-hooks-work)
 - [What Gets Detected](#what-gets-detected)
 - [Safety Levels](#safety-levels)
+- [Dashboard Features](#dashboard-features)
 - [API Endpoints](#api-endpoints)
 - [Project Structure](#project-structure)
 - [Logging](#logging)
@@ -58,7 +61,7 @@ Run manual scans on any codebase to find secrets, OWASP vulnerabilities, insecur
 
 ### 4. Real-Time Dashboard
 
-Monitor everything in a live dashboard — security score, severity breakdown, category distribution, hook activity log, and detailed findings:
+Monitor everything in a live dashboard — security score, severity breakdown, category distribution, **24h/7d activity trends chart**, **searchable activity log with severity & tool filters**, and detailed findings. The header shows a **live API health indicator** (green pulse = healthy, yellow = slow, red = unreachable) and the time of the last successful poll.
 
 ![Full Dashboard](assets/dashboard-full.png)
 
@@ -105,8 +108,14 @@ npm install
 
 ### Set Up Hooks
 
+Pick one:
+
 ```bash
+# Per-project: hooks only fire when Claude Code runs inside this repo
 npm run setup-hooks
+
+# Global: hooks fire in every project on this machine
+npm run install-globally
 ```
 
 Output:
@@ -181,7 +190,9 @@ Docker Compose uses a named volume `scan-data` to persist scan results and activ
 | Command | Description |
 |---------|-------------|
 | `npm install` | Install all dependencies |
-| `npm run setup-hooks` | Install Claude Code hooks (one-time) |
+| `npm run setup-hooks` | Install hooks for **this project only** (writes `.claude/settings.json` here) |
+| `npm run install-globally` | Install hooks into `~/.claude/settings.json` so they activate in every project |
+| `npm run install-globally -- --uninstall` | Remove the global hook entries |
 | `npm run scan -- <path>` | Scan a file or directory |
 | `npm run scan -- <path> --json` | Scan with JSON output |
 | `npm run scan -- <path> --dry-run` | Scan without saving results |
@@ -210,51 +221,24 @@ npm run setup-hooks    # hooks written to .claude/settings.json in this project
 **Pros:** No impact on other projects, easy to customize per-project.
 **Cons:** Only protects this one project.
 
-### Option B: Global — Protect All Projects
+### Option B: Global — Protect All Projects (one command)
 
-Install hooks globally so they activate in **every project** you use Claude Code in.
-
-**Step 1:** Copy hook scripts to a permanent location:
+Install hooks globally so they activate in **every project** you use Claude Code in:
 
 ```bash
-mkdir -p ~/.claude/hooks
-cp hooks/pre-tool-use.js ~/.claude/hooks/
-cp hooks/post-tool-use.js ~/.claude/hooks/
-
-# Also copy the scanner (hooks depend on it)
-cp -r scanner/ ~/.claude/hooks/scanner/
+npm run install-globally
 ```
 
-**Step 2:** Edit `~/.claude/settings.json` (global config):
+This adds entries to `~/.claude/settings.json` that point at the hook scripts inside this repo (using absolute paths). Re-running is safe — it updates existing entries in place rather than duplicating them. Because the entries reference this repo's location on disk, **don't move or delete the cloned folder**; if you do, re-run `npm run install-globally` from the new location.
 
-```json
-{
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Write|Edit|Bash",
-        "hooks": [{
-          "type": "command",
-          "command": "node ~/.claude/hooks/pre-tool-use.js"
-        }]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Write|Edit",
-        "hooks": [{
-          "type": "command",
-          "command": "node ~/.claude/hooks/post-tool-use.js"
-        }]
-      }
-    ]
-  }
-}
+To remove:
+
+```bash
+npm run install-globally -- --uninstall
 ```
 
-**Step 3:** Update the `require()` paths inside the copied hook scripts to point to the new scanner location (`~/.claude/hooks/scanner/...`).
-
-Now every Claude Code session on your machine is protected — regardless of which project you're in.
+**Pros:** Every Claude Code session on your machine is protected, regardless of project.
+**Cons:** Hooks live in one place; if you delete the repo, hooks break until you reinstall.
 
 ### Option C: Dashboard Always Running
 
@@ -426,59 +410,102 @@ This gives you a safety net even if someone bypasses local hooks.
 
 ---
 
-## How Hooks Work
+## How It Works (in depth)
 
-### Architecture
+### The lifecycle of a tool call
+
+Every time Claude Code wants to do something with side effects — write a file, edit a file, run a shell command — it announces the intent to its harness *before* performing it. Hooks are scripts the harness invokes at those checkpoints. They receive a JSON description of the proposed action on stdin, do whatever they want, and respond on stdout. There are two checkpoints this project plugs into:
+
+1. **`PreToolUse`** — fires *before* the action happens. The hook can return `{}` to let it proceed, or a `permissionDecision: "deny"` payload to block it. **The action never happens if the hook denies.** The deny reason is shown back to Claude, who then has the chance to revise (e.g. remove the hardcoded secret, pick a safer command) and try again.
+2. **`PostToolUse`** — fires *after* a successful Write/Edit. It can't block (the action already happened) but can observe the resulting file, run a deeper scan against the saved content, and log everything to the dashboard.
 
 ```
-Claude Code tries to write code or run a command
+Claude Code wants to: Write/Edit a file  OR  run a Bash command
          │
+         │  (JSON of the proposed call piped to stdin)
          ▼
-┌─────────────────────────────────────┐
-│  PreToolUse Hook                    │
-│  ✓ Write/Edit → Scan for secrets,  │
-│    vulnerabilities, insecure code   │
-│  ✓ Bash → Check for dangerous      │
-│    commands (rm -rf, force push)    │
-└──────────────┬──────────────────────┘
-        ┌──────┴──────┐
-    BLOCKED       ALLOWED
-   (denied)     (executed)
-                    │
-                    ▼
-          ┌────────────────────┐
-          │  PostToolUse Hook  │
-          │  Full scan + save  │
-          │  results to        │
-          │  dashboard         │
-          └────────────────────┘
+┌─────────────────────────────────────────────────────┐
+│  hooks/pre-tool-use.js  (PreToolUse)                │
+│                                                     │
+│  Write/Edit  → scanSecrets + scanOwasp +            │
+│                scanCodePatterns on the *proposed*   │
+│                content (not yet on disk)            │
+│  Bash        → checkCommand against 30+ patterns    │
+│                (rm -rf /, force push, curl|bash, …) │
+│                                                     │
+│  Severity ≥ threshold?                              │
+└──────────────┬──────────────────────────────────────┘
+        ┌──────┴──────────────┐
+        ▼                     ▼
+  stdout: deny JSON       stdout: {}
+  (Claude sees reason,    (action proceeds)
+   action is not run)            │
+                                 ▼
+                  ┌──────────────────────────────────┐
+                  │  hooks/post-tool-use.js          │
+                  │  (PostToolUse, Write/Edit only)  │
+                  │                                  │
+                  │  Full scan of the saved file →   │
+                  │  appendResult + appendEvent      │
+                  │  → visible in the dashboard      │
+                  └──────────────────────────────────┘
 ```
 
-### Protocol
+### Why two hooks instead of one?
 
-Hook scripts communicate with Claude Code via **stdin/stdout JSON**:
+The Pre hook is fast and conservative — it only has the proposed *content*, not the file in context. The Post hook can do heavier analysis (full scan, score calculation, category breakdown) because the file is now real and the action has already passed the cheap pre-check. This split keeps Claude's editing loop fast while still producing rich dashboard data.
 
-```
-Claude Code → pipes JSON to hook's stdin:
-  { "tool_name": "Bash", "tool_input": { "command": "rm -rf /" } }
+### The wire protocol
 
-Hook → writes JSON to stdout:
+Claude Code pipes JSON to the hook's stdin. Example for a Bash call:
 
-  Allow:  {}
-  Block:  { "hookSpecificOutput": {
-              "hookEventName": "PreToolUse",
-              "permissionDecision": "deny",
-              "permissionDecisionReason": "🚨 rm targeting root filesystem"
-            }}
+```json
+{
+  "tool_name": "Bash",
+  "tool_input": { "command": "rm -rf /" },
+  "session_id": "01J…"
+}
 ```
 
-### Scope
+The hook writes JSON to stdout. Two valid replies:
 
-| Settings location | Scope |
-|-------------------|-------|
-| `.claude/settings.json` (in project) | This project only |
-| `~/.claude/settings.json` (home dir) | All projects for this user |
-| `CLAUDE_SETTINGS_OVERRIDES` env var | Enforced, cannot be overridden |
+```jsonc
+// Allow
+{}
+
+// Deny
+{
+  "hookSpecificOutput": {
+    "hookEventName": "PreToolUse",
+    "permissionDecision": "deny",
+    "permissionDecisionReason": "🚨 [rm-root] rm targeting root filesystem\n\nCommand: rm -rf /\n\nThis command was blocked because it could cause irreversible damage."
+  }
+}
+```
+
+The `permissionDecisionReason` text is what Claude actually sees, so it's written to be useful guidance, not just an error code. If the hook itself crashes, [pre-tool-use.js](hooks/pre-tool-use.js) catches the error and falls through to `allow()` — **a broken hook will never block Claude.** This is a deliberate fail-open choice: a fail-closed hook would brick development the moment the scanner has a bug.
+
+### Where hooks are configured
+
+Claude Code merges settings from three locations, in increasing priority:
+
+| Location | Scope | Set by |
+|----------|-------|--------|
+| `<project>/.claude/settings.json` | One project | `npm run setup-hooks` |
+| `~/.claude/settings.json` | Every project for this user | `npm run install-globally` |
+| `CLAUDE_SETTINGS_OVERRIDES` env var or managed policy file | Enforced — user cannot override | Enterprise / MDM |
+
+Each entry has a `matcher` regex (e.g. `Write|Edit|Bash`) and a list of commands to run. The setup scripts in this repo write absolute paths so the hooks work regardless of cwd.
+
+### What the scanners actually do
+
+Every scanner is a pure function: `(content, filePath) → findings[]`. Each finding has a `rule`, `severity`, `line`, `snippet`, and `description`. The Pre hook unions findings across [secrets.js](scanner/scanners/secrets.js), [owasp.js](scanner/scanners/owasp.js), and [codePatterns.js](scanner/scanners/codePatterns.js), then filters by the configured severity threshold. The Bash scanner ([dangerousCommands.js](scanner/scanners/dangerousCommands.js)) is a list of pattern objects with ids, regex matchers, and severity levels — it returns at most one match per command (the first/worst).
+
+### Where data lives
+
+- `scanner/data/scan-results.json` — last 100 full file scans (PostToolUse). Auto-rotated.
+- `scanner/data/activity-log.json` — last 200 hook events (Pre and Post, blocked/allowed/warning/findings). Auto-rotated.
+- `~/.claude/hooks-logs/YYYY-MM-DD.jsonl` — append-only daily log of every hook invocation. Useful for forensics; not auto-rotated, so prune manually if it grows.
 
 ---
 
@@ -544,17 +571,46 @@ Checks `package.json` for outdated packages with known CVEs (lodash, jsonwebtoke
 
 ## Safety Levels
 
-The PreToolUse hook has a configurable safety level in `hooks/pre-tool-use.js`:
+The PreToolUse hook reads its threshold from the **`GUARDRAILS_LEVEL`** environment variable. Default: `high`. Invalid values fall back to `high`.
 
-```js
-const SAFETY_LEVEL = 'high'; // 'critical' | 'high' | 'strict'
+```bash
+# One-off, for a single Claude Code session
+GUARDRAILS_LEVEL=strict claude
+
+# Persistent: add to your shell profile (~/.zshrc / ~/.bashrc / Windows env vars)
+export GUARDRAILS_LEVEL=strict
+
+# Per-project: write into .env or your shell init for that directory
 ```
 
-| Level | What gets blocked |
-|-------|------------------|
-| `critical` | Only catastrophic: leaked secrets, eval(), rm -rf /, fork bombs |
-| **`high`** (default) | + risky: XSS, SQL injection, force push main, git reset --hard, weak crypto |
-| `strict` | + cautionary: all medium/low findings, any force push, sudo rm, docker prune |
+| Level | What gets blocked | Use when |
+|-------|------------------|----------|
+| `critical` | Only catastrophic: leaked secrets, `eval()`, `rm -rf /`, fork bombs | You want minimal interruption, only stop the truly irreversible |
+| **`high`** (default) | + risky: XSS, SQL injection, force push to main, `git reset --hard`, weak crypto, `cat .env` | Recommended baseline for most teams |
+| `strict` | + cautionary: all medium/low findings, any force push, `sudo rm`, `docker prune` | Production-adjacent work, security-critical repos |
+
+The mapping from finding severity to threshold lives in [hooks/pre-tool-use.js:56-65](hooks/pre-tool-use.js#L56). If you want a custom level (e.g. block secrets only, ignore everything else), edit `shouldBlock()` directly.
+
+---
+
+## Dashboard Features
+
+The dashboard polls the API every 5 seconds and renders:
+
+- **Header** — last scan time, total scans, total findings, blocked count, plus a **live API status indicator**: green pulsing dot when healthy, yellow when slow (>1.5 s round trip), red when the API is unreachable. Includes a relative "updated Xs ago" timestamp so you can tell at a glance whether the data is fresh.
+- **Security score gauge** (0–100) — derived from the last full scan's severity counts.
+- **Severity bar chart** + **category breakdown** — distribution of findings in the latest scan.
+- **Activity Trends chart** — time-series line chart of `blocked` / `warning` / `findings` / `allowed` events with a **24h / 7d** toggle. Buckets by hour for 24h view, by day for 7d. Uses `recharts`.
+- **Hook Activity Log** — every hook event with timestamp, tool, target, reason, severity badge, and inline finding details. Filter controls:
+  - Action filter buttons: `All / Blocked / Allowed / Warning / Findings`
+  - **Severity dropdown** (`critical / high / medium / low`)
+  - **Tool dropdown** (auto-populated from observed events: Write, Edit, Bash, …)
+  - **Free-text search** across target path, reason, tool, hook name, and action
+  - "Clear" button to reset all filters; live count of `Showing N of M events`
+- **Recent Scans table** — last 20 file scans with score, finding count, file path.
+- **Findings table** — every finding from the latest scan with rule, severity, line, and snippet.
+
+The dashboard is dark-themed by default; colour tokens live at the top of [App.css](dashboard/src/App.css) (`--bg-primary`, `--accent`, severity colours) and are easy to override.
 
 ---
 
@@ -604,19 +660,21 @@ claude-security-guardrails/
 │       ├── scan-results.json
 │       └── activity-log.json
 ├── hooks/                          # Claude Code hooks
-│   ├── pre-tool-use.js             # BLOCKING hook
+│   ├── pre-tool-use.js             # BLOCKING hook (reads GUARDRAILS_LEVEL)
 │   ├── post-tool-use.js            # Reporting hook
-│   └── setup-hooks.js              # Installer
+│   ├── setup-hooks.js              # Per-project installer
+│   └── install-globally.js         # Global installer / uninstaller
 ├── dashboard/                      # React + Vite
 │   └── src/
 │       └── components/
 │           ├── SecurityScore.jsx
 │           ├── SeverityChart.jsx
 │           ├── CategoryBreakdown.jsx
-│           ├── ActivityLog.jsx
+│           ├── ActivityLog.jsx     # Filters, search, severity/tool dropdowns
+│           ├── TrendsChart.jsx     # 24h/7d activity line chart (recharts)
 │           ├── RecentScans.jsx
 │           ├── FindingsTable.jsx
-│           └── Header.jsx
+│           └── Header.jsx          # Live API status indicator
 ├── test-fixtures/                  # Sample vulnerable files
 └── .claude/
     └── settings.json               # Hook configuration
