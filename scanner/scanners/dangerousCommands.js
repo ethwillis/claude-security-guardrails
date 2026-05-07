@@ -46,6 +46,34 @@ const DANGEROUS_PATTERNS = [
   { level: 'high', id: 'curl-upload-env',  regex: /\bcurl\b[^;|&]*(-d\s*@|-F\s*[^=]+=@|--data[^=]*=@)[^;|&]*(\.env|credentials|secrets|id_rsa|\.pem|\.key)/i, reason: 'Uploading secrets via curl' },
   { level: 'high', id: 'scp-secrets',      regex: /\bscp\b[^;|&]*(\.env|credentials|secrets|id_rsa|\.pem|\.key)[^;|&]+:/i,    reason: 'Copying secrets via scp' },
 
+  // ── PowerShell: CRITICAL ──
+  // Aliases for Remove-Item: rm, del, ri, rmdir, erase
+  { level: 'critical', id: 'ps-remove-system',     regex: /\b(Remove-Item|del|erase|rmdir|ri)\b[^|;]*(-Recurse|-r\b|-Force)[^|;]*\b(C:\\?(\s|$|[;&|])|C:\\Windows|C:\\Program Files)/i, reason: 'PowerShell recursive delete on system drive/dirs' },
+  { level: 'critical', id: 'ps-remove-userprofile', regex: /\b(Remove-Item|del|erase|rmdir|ri)\b[^|;]*-Recurse[^|;]*\$env:USERPROFILE/i,                              reason: 'PowerShell recursive delete on user profile' },
+  { level: 'critical', id: 'ps-remove-home',       regex: /\b(Remove-Item|del|erase|rmdir|ri)\b[^|;]*-Recurse[^|;]*\$(HOME|env:HOMEPATH)/i,                            reason: 'PowerShell recursive delete on $HOME' },
+  { level: 'critical', id: 'ps-remove-users',      regex: /\b(Remove-Item|del|erase|rmdir|ri)\b[^|;]*-Recurse[^|;]*C:\\Users(\\\*|\\?\s|$)/i,                          reason: 'PowerShell recursive delete on C:\\Users' },
+  { level: 'critical', id: 'ps-format-volume',     regex: /\bFormat-Volume\b/i,                                                                                       reason: 'Format-Volume — wipes a drive' },
+  { level: 'critical', id: 'ps-clear-disk',        regex: /\bClear-Disk\b/i,                                                                                          reason: 'Clear-Disk — destroys all partitions' },
+  { level: 'critical', id: 'ps-initialize-disk',   regex: /\bInitialize-Disk\b/i,                                                                                     reason: 'Initialize-Disk — repartitions a disk' },
+  { level: 'critical', id: 'ps-cipher-wipe',       regex: /\bcipher\b\s+\/w:/i,                                                                                       reason: 'cipher /w: — overwrites free space, destructive' },
+
+  // ── PowerShell: HIGH ──
+  { level: 'high', id: 'ps-iex-download',          regex: /\b(iex|Invoke-Expression)\b[^;]*\b(iwr|Invoke-WebRequest|Invoke-RestMethod|irm|curl|wget|DownloadString)\b/i, reason: 'iex on remote content — PowerShell remote code execution' },
+  { level: 'high', id: 'ps-downloadstring',        regex: /\bDownloadString\s*\(/i,                                                                                   reason: '.DownloadString() — common in PowerShell drive-by execution' },
+  { level: 'high', id: 'ps-execpolicy-bypass',     regex: /\bSet-ExecutionPolicy\b[^;]*\b(Bypass|Unrestricted)\b/i,                                                   reason: 'Disabling PowerShell execution policy — opens script execution' },
+  { level: 'high', id: 'ps-defender-exclude',      regex: /\bAdd-MpPreference\b[^;]*-ExclusionPath/i,                                                                 reason: 'Adding Defender exclusion — common malware persistence step' },
+  { level: 'high', id: 'ps-defender-disable',      regex: /\bSet-MpPreference\b[^;]*-DisableRealtimeMonitoring\s*\$?true/i,                                          reason: 'Disabling Windows Defender real-time monitoring' },
+  { level: 'high', id: 'ps-get-content-env',       regex: /\bGet-Content\b[^|;]*\.env\b/i,                                                                            reason: 'Get-Content on .env — may expose secrets' },
+  { level: 'high', id: 'ps-get-content-secrets',   regex: /\bGet-Content\b[^|;]*(credentials|secrets?|\.pem|\.key|id_rsa|id_ed25519)/i,                               reason: 'Get-Content on secrets/key file' },
+  { level: 'high', id: 'ps-env-dump',              regex: /\bGet-ChildItem\s+env:|\bls\s+env:|\bdir\s+env:/i,                                                         reason: 'Dumping all environment variables — may expose secrets' },
+  { level: 'high', id: 'ps-echo-secret',           regex: /\b(Write-Host|Write-Output|echo)\b[^;]*\$env:[A-Z_]*(SECRET|KEY|TOKEN|PASSWORD|API_|PRIVATE)/i,           reason: 'Printing secret environment variable' },
+  { level: 'high', id: 'ps-rm-ssh',                regex: /\b(Remove-Item|del|erase|ri)\b[^;]*\.ssh\\?(id_|authorized_keys|known_hosts|\*)/i,                         reason: 'Deleting SSH keys' },
+  { level: 'high', id: 'ps-reg-delete-hklm',       regex: /\b(reg\s+delete|Remove-Item)\b[^;]*\bHKLM[:\\]/i,                                                          reason: 'Deleting HKLM registry keys — system-wide impact' },
+  { level: 'high', id: 'ps-net-user-add',          regex: /\bnet\s+user\b[^;]*\/add\b/i,                                                                              reason: 'Creating new Windows user account' },
+  { level: 'high', id: 'ps-net-admin-group',       regex: /\bnet\s+localgroup\s+administrators\b[^;]*\/add\b/i,                                                       reason: 'Adding user to Administrators — privilege escalation' },
+  { level: 'high', id: 'ps-stop-process-mass',     regex: /\bGet-Process\b[^;]*\|\s*Stop-Process|\bStop-Process\b[^;]*-Force[^;]*-Name\s+\*/i,                        reason: 'Mass process termination' },
+  { level: 'high', id: 'ps-shutdown',              regex: /\b(Stop-Computer|Restart-Computer)\b/i,                                                                    reason: 'PowerShell system shutdown/restart' },
+
   // ── STRICT: Cautionary, context-dependent ──
   { level: 'strict', id: 'git-force-any',    regex: /\bgit\s+push\b(?!.+--force-with-lease).+(--force|-f)\b/,                 reason: 'Force push — use --force-with-lease instead' },
   { level: 'strict', id: 'git-checkout-dot', regex: /\bgit\s+checkout\s+\./,                                                  reason: 'git checkout . — discards all local changes' },

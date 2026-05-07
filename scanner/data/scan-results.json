@@ -1,1 +1,388 @@
-[]
+[
+  {
+    "id": "scan_1778176845797_zpnrj4",
+    "timestamp": "2026-05-07T18:00:45.797Z",
+    "targetPath": "test-fixtures",
+    "filesScanned": 2,
+    "fileList": [
+      "test-fixtures\\vulnerable-package.json",
+      "test-fixtures\\vulnerable-app.js"
+    ],
+    "score": 0,
+    "severityCounts": {
+      "critical": 11,
+      "high": 16,
+      "medium": 7,
+      "low": 2
+    },
+    "totalFindings": 36,
+    "findings": [
+      {
+        "category": "Dependencies",
+        "rule": "Known Vulnerability",
+        "severity": "high",
+        "file": "test-fixtures\\vulnerable-package.json",
+        "line": 5,
+        "column": 1,
+        "description": "lodash@^4.17.15 - Prototype pollution (upgrade to >=4.17.21)",
+        "snippet": "\"lodash\": \"^4.17.15\""
+      },
+      {
+        "category": "Dependencies",
+        "rule": "Known Vulnerability",
+        "severity": "medium",
+        "file": "test-fixtures\\vulnerable-package.json",
+        "line": 6,
+        "column": 1,
+        "description": "express@^4.16.0 - Open redirect vulnerability (upgrade to >=4.17.3)",
+        "snippet": "\"express\": \"^4.16.0\""
+      },
+      {
+        "category": "Dependencies",
+        "rule": "Known Vulnerability",
+        "severity": "high",
+        "file": "test-fixtures\\vulnerable-package.json",
+        "line": 7,
+        "column": 1,
+        "description": "axios@^0.19.0 - SSRF vulnerability (upgrade to >=0.21.2)",
+        "snippet": "\"axios\": \"^0.19.0\""
+      },
+      {
+        "category": "Dependencies",
+        "rule": "Known Vulnerability",
+        "severity": "critical",
+        "file": "test-fixtures\\vulnerable-package.json",
+        "line": 8,
+        "column": 1,
+        "description": "jsonwebtoken@^8.5.0 - JWT verification bypass (upgrade to >=9.0.0)",
+        "snippet": "\"jsonwebtoken\": \"^8.5.0\""
+      },
+      {
+        "category": "Dependencies",
+        "rule": "Known Vulnerability",
+        "severity": "critical",
+        "file": "test-fixtures\\vulnerable-package.json",
+        "line": 9,
+        "column": 1,
+        "description": "shell-quote@^1.6.0 - Command injection (upgrade to >=1.7.3)",
+        "snippet": "\"shell-quote\": \"^1.6.0\""
+      },
+      {
+        "category": "Dependencies",
+        "rule": "Known Vulnerability",
+        "severity": "high",
+        "file": "test-fixtures\\vulnerable-package.json",
+        "line": 10,
+        "column": 1,
+        "description": "minimist@^1.2.0 - Prototype pollution (upgrade to >=1.2.6)",
+        "snippet": "\"minimist\": \"^1.2.0\""
+      },
+      {
+        "category": "Dependencies",
+        "rule": "Known Vulnerability",
+        "severity": "high",
+        "file": "test-fixtures\\vulnerable-package.json",
+        "line": 11,
+        "column": 1,
+        "description": "json5@^2.1.0 - Prototype pollution (upgrade to >=2.2.2)",
+        "snippet": "\"json5\": \"^2.1.0\""
+      },
+      {
+        "category": "Dependencies",
+        "rule": "Known Vulnerability",
+        "severity": "high",
+        "file": "test-fixtures\\vulnerable-package.json",
+        "line": 12,
+        "column": 1,
+        "description": "qs@^6.5.0 - Prototype pollution (upgrade to >=6.10.3)",
+        "snippet": "\"qs\": \"^6.5.0\""
+      },
+      {
+        "category": "Dependencies",
+        "rule": "Known Vulnerability",
+        "severity": "medium",
+        "file": "test-fixtures\\vulnerable-package.json",
+        "line": 13,
+        "column": 1,
+        "description": "moment@^2.29.0 - Path traversal (upgrade to >=2.29.4)",
+        "snippet": "\"moment\": \"^2.29.0\""
+      },
+      {
+        "category": "Dependencies",
+        "rule": "Wildcard Version",
+        "severity": "medium",
+        "file": "test-fixtures\\vulnerable-package.json",
+        "line": 16,
+        "column": 1,
+        "description": "Package \"some-package\" uses wildcard version \"*\" - pin to a specific version",
+        "snippet": "\"some-package\": \"*\""
+      },
+      {
+        "category": "Dependencies",
+        "rule": "Broad Version Range",
+        "severity": "low",
+        "file": "test-fixtures\\vulnerable-package.json",
+        "line": 17,
+        "column": 1,
+        "description": "Package \"another-package\" uses broad version range \">=1.0.0\"",
+        "snippet": "\"another-package\": \">=1.0.0\""
+      },
+      {
+        "category": "Secrets",
+        "rule": "AWS Access Key",
+        "severity": "critical",
+        "file": "test-fixtures\\vulnerable-app.js",
+        "line": 12,
+        "column": 18,
+        "description": "AWS Access Key ID detected",
+        "snippet": "const AWS_KEY = \"AKIAIOSFODNN7EXAMPLE\";"
+      },
+      {
+        "category": "Secrets",
+        "rule": "AWS Secret Key",
+        "severity": "critical",
+        "file": "test-fixtures\\vulnerable-app.js",
+        "line": 13,
+        "column": 21,
+        "description": "AWS Secret Access Key detected",
+        "snippet": "const AWS_SECRET = \"aws_secret_access_key = wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY\";"
+      },
+      {
+        "category": "Secrets",
+        "rule": "Generic API Key",
+        "severity": "high",
+        "file": "test-fixtures\\vulnerable-app.js",
+        "line": 17,
+        "column": 7,
+        "description": "Possible API key in code",
+        "snippet": "const api_key = \"ABCDEF1234567890GHIJKL\";"
+      },
+      {
+        "category": "Secrets",
+        "rule": "Private Key",
+        "severity": "critical",
+        "file": "test-fixtures\\vulnerable-app.js",
+        "line": 31,
+        "column": 14,
+        "description": "Private key embedded in source code",
+        "snippet": "const key = `-----BEGIN RSA PRIVATE KEY-----"
+      },
+      {
+        "category": "Secrets",
+        "rule": "JWT Token",
+        "severity": "high",
+        "file": "test-fixtures\\vulnerable-app.js",
+        "line": 28,
+        "column": 16,
+        "description": "Hardcoded JWT token detected",
+        "snippet": "const token = \"eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.abc123\";"
+      },
+      {
+        "category": "Secrets",
+        "rule": "Connection String",
+        "severity": "critical",
+        "file": "test-fixtures\\vulnerable-app.js",
+        "line": 24,
+        "column": 19,
+        "description": "Database connection string with possible credentials",
+        "snippet": "const mongoUrl = \"mongodb://admin:password123@production-server:27017/mydb\";"
+      },
+      {
+        "category": "Secrets",
+        "rule": "Connection String",
+        "severity": "critical",
+        "file": "test-fixtures\\vulnerable-app.js",
+        "line": 25,
+        "column": 16,
+        "description": "Database connection string with possible credentials",
+        "snippet": "const pgUrl = \"postgres://user:pass@host:5432/db\";"
+      },
+      {
+        "category": "Secrets",
+        "rule": "Hardcoded Password",
+        "severity": "high",
+        "file": "test-fixtures\\vulnerable-app.js",
+        "line": 20,
+        "column": 7,
+        "description": "Hardcoded password detected",
+        "snippet": "const password = \"SuperSecret123!@#\";"
+      },
+      {
+        "category": "Secrets",
+        "rule": "Hardcoded Password",
+        "severity": "high",
+        "file": "test-fixtures\\vulnerable-app.js",
+        "line": 21,
+        "column": 9,
+        "description": "Hardcoded password detected",
+        "snippet": "const dbPassword = \"MyDatabaseP@ssw0rd123\";"
+      },
+      {
+        "category": "OWASP",
+        "rule": "SQL Injection - Template Literal",
+        "severity": "critical",
+        "file": "test-fixtures\\vulnerable-app.js",
+        "line": 43,
+        "column": 6,
+        "description": "Possible SQL injection via template literal interpolation",
+        "snippet": "db.query(`SELECT * FROM products WHERE name LIKE '%${req.body.search}%'`);"
+      },
+      {
+        "category": "OWASP",
+        "rule": "XSS - innerHTML",
+        "severity": "high",
+        "file": "test-fixtures\\vulnerable-app.js",
+        "line": 48,
+        "column": 38,
+        "description": "Direct innerHTML assignment can lead to XSS",
+        "snippet": "document.getElementById('comments').innerHTML = comment;"
+      },
+      {
+        "category": "OWASP",
+        "rule": "XSS - dangerouslySetInnerHTML",
+        "severity": "high",
+        "file": "test-fixtures\\vulnerable-app.js",
+        "line": 51,
+        "column": 19,
+        "description": "dangerouslySetInnerHTML can lead to XSS if input is unsanitized",
+        "snippet": "// OWASP: XSS via dangerouslySetInnerHTML"
+      },
+      {
+        "category": "OWASP",
+        "rule": "XSS - dangerouslySetInnerHTML",
+        "severity": "high",
+        "file": "test-fixtures\\vulnerable-app.js",
+        "line": 53,
+        "column": 15,
+        "description": "dangerouslySetInnerHTML can lead to XSS if input is unsanitized",
+        "snippet": "return <div dangerouslySetInnerHTML={{ __html: html }} />;"
+      },
+      {
+        "category": "OWASP",
+        "rule": "Command Injection - exec",
+        "severity": "critical",
+        "file": "test-fixtures\\vulnerable-app.js",
+        "line": 5,
+        "column": 1,
+        "description": "child_process.exec with potential unsanitized input",
+        "snippet": "require('child_process');\r\nconst crypto = require('crypto');\r\nconst fs = require('fs');\r\nconst path = require('path');\r\n"
+      },
+      {
+        "category": "OWASP",
+        "rule": "Command Injection - exec direct",
+        "severity": "critical",
+        "file": "test-fixtures\\vulnerable-app.js",
+        "line": 58,
+        "column": 3,
+        "description": "Command execution with string interpolation/concatenation",
+        "snippet": "exec(`convert ${req.body.filename} output.pdf`, (err, stdout) => {"
+      },
+      {
+        "category": "OWASP",
+        "rule": "Path Traversal - Join",
+        "severity": "medium",
+        "file": "test-fixtures\\vulnerable-app.js",
+        "line": 65,
+        "column": 20,
+        "description": "path.join with user input - verify path traversal protection",
+        "snippet": "const filePath = path.join('/uploads', req.query.name);"
+      },
+      {
+        "category": "OWASP",
+        "rule": "SSRF - User-controlled URL",
+        "severity": "high",
+        "file": "test-fixtures\\vulnerable-app.js",
+        "line": 71,
+        "column": 3,
+        "description": "HTTP request with user-controlled URL - possible SSRF",
+        "snippet": "fetch(req.query.url).then(r => r.text()).then(data => res.send(data));"
+      },
+      {
+        "category": "Code Patterns",
+        "rule": "eval() Usage",
+        "severity": "critical",
+        "file": "test-fixtures\\vulnerable-app.js",
+        "line": 79,
+        "column": 10,
+        "description": "eval() can execute arbitrary code - avoid using it",
+        "snippet": "return eval(input);"
+      },
+      {
+        "category": "Code Patterns",
+        "rule": "Function() Constructor",
+        "severity": "high",
+        "file": "test-fixtures\\vulnerable-app.js",
+        "line": 83,
+        "column": 19,
+        "description": "Function constructor can execute arbitrary code like eval()",
+        "snippet": "const dynamicFn = new Function('x', 'return x * 2');"
+      },
+      {
+        "category": "Code Patterns",
+        "rule": "Weak Hash - MD5",
+        "severity": "high",
+        "file": "test-fixtures\\vulnerable-app.js",
+        "line": 87,
+        "column": 17,
+        "description": "MD5 is cryptographically weak - use SHA-256 or bcrypt for passwords",
+        "snippet": "return crypto.createHash('md5').update(pwd).digest('hex');"
+      },
+      {
+        "category": "Code Patterns",
+        "rule": "Weak Hash - SHA1",
+        "severity": "medium",
+        "file": "test-fixtures\\vulnerable-app.js",
+        "line": 91,
+        "column": 17,
+        "description": "SHA-1 is deprecated for security purposes - use SHA-256+",
+        "snippet": "return crypto.createHash('sha1').update(data).digest('hex');"
+      },
+      {
+        "category": "Code Patterns",
+        "rule": "Disabled TLS Verification",
+        "severity": "high",
+        "file": "test-fixtures\\vulnerable-app.js",
+        "line": 101,
+        "column": 33,
+        "description": "TLS certificate verification is disabled - vulnerable to MITM attacks",
+        "snippet": "const agent = new https.Agent({ rejectUnauthorized: false });"
+      },
+      {
+        "category": "Code Patterns",
+        "rule": "Sensitive Data Logging",
+        "severity": "medium",
+        "file": "test-fixtures\\vulnerable-app.js",
+        "line": 105,
+        "column": 3,
+        "description": "Logging potentially sensitive data to console",
+        "snippet": "console.log(\"Login attempt with password:\", pass);"
+      },
+      {
+        "category": "Code Patterns",
+        "rule": "Sensitive Data Logging",
+        "severity": "medium",
+        "file": "test-fixtures\\vulnerable-app.js",
+        "line": 106,
+        "column": 3,
+        "description": "Logging potentially sensitive data to console",
+        "snippet": "console.log(\"Using apiKey:\", apiKey);"
+      },
+      {
+        "category": "Code Patterns",
+        "rule": "Hardcoded Port",
+        "severity": "low",
+        "file": "test-fixtures\\vulnerable-app.js",
+        "line": 110,
+        "column": 4,
+        "description": "Hardcoded port number - consider using PORT env variable",
+        "snippet": "app.listen(3000, () => console.log('Running'));"
+      }
+    ],
+    "categoryCounts": {
+      "Dependencies": 11,
+      "Secrets": 9,
+      "OWASP": 8,
+      "Code Patterns": 8
+    }
+  }
+]
